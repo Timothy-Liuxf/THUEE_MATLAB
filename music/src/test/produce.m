@@ -13,7 +13,7 @@ for i = 1 : 1 : len
     nTime_len = Fs * time_len * padding;
     t = linspace(0, time_len * padding - 1 / Fs, nTime_len)';
     % tmp_res = envelope(t/time_len) .* sin(2 * pi * f * t);
-    tmp_res = envelope(t/time_len) .* (sin(2 * pi * f * t) + 0.1 * sin(2 * pi * 2*f * t) + 0.2 * sin(2 * pi * 3*f * t));
+    tmp_res = envelope(t/time_len) .* (sin(2 * pi * f * t) + 0.2 * sin(2 * pi * 2*f * t) + 0.1 * sin(2 * pi * 3*f * t));
     if (last_nPadding == 0)
         res = [res; tmp_res];
     else

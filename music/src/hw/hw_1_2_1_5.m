@@ -2,7 +2,7 @@ clear all, close all, clc;
 
 tunes = zeros([7 4]);
 Fs = 8000;
-beat_len = 0.4;
+beat_len = 0.47;
 ratio = 2^(1/12);
 
 scale_diffs = [-9, -7, -5, -4, -2, 0, 2]';

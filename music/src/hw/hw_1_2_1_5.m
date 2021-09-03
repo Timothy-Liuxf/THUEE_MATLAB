@@ -1,27 +1,18 @@
 clear all, close all, clc;
 
-tunes = zeros([7 4]);
 Fs = 8000;
 beat_len = 0.47;
+
 ratio = 2^(1/12);
 
-scale_diffs = [-9, -7, -5, -4, -2, 0, 2]';
-real_diffs = ratio.^scale_diffs;
-base_A = 6;
-tunes(base_A, 1) = 220;
-tunes(base_A, 2) = 440;
-tunes(base_A, 3) = 880;
-
-for i = 1 : 7
-    tunes(i, 1:end) = tunes(base_A, 1:end) .* real_diffs(i);
-end
+tunes = get_tunes(6);
 
 low = @(x) x;
 mid = @(x) x + 7;
 high = @(x) x + 14;
 pause = @(x) 22;
 
-song = [...
+song1 = [...
     mid(1), 1; mid(2), 1; mid(3), 1; mid(1), 1; ...    % Liang zhi lao hu
     mid(2), 1; mid(5), 1; mid(5), 1; pause(0), 1; ...
     mid(3), 1; mid(6), 0.5; mid(6), 0.5; mid(6), 1; mid(6), 1; ...    % Xiao tu zi guai guai
@@ -52,27 +43,55 @@ song = [...
     mid(5), 2; pause(0), 1; pause(0), 1; ...
     mid(3), 1; mid(5), 1; mid(5), 1; high(1), 0.5; high(1), 0.5; ... % Ni shi wo men de
     high(2), 0.5; high(2), 0.5; high(2), 1; mid(6), 2; ...
-    mid(5), 0.5; mid(5), 0.5; mid(5), 0.5; mid(6), 0.5; mid(7), 0.5; high(1), 0.5; high(1), 0.5; high(2), 0.5; ... % Yong gan mai kai
-    high(1), 4];
+    mid(5), 0.5; mid(5), 0.5; mid(5), 0.5; mid(6), 0.5; mid(7), 0.5; high(1), 0.5; high(1), 0.5; high(2), 0.5; ... % Ba ba ma ma de ai
+    high(1), 4; ...
+    pause(0), 4];
 
-len = size(song);
-len = len(1);
-res = [];
-[~, padding] = envelope(0);
-last_nPadding = 0;
-for i = 1 : 1 : len
-    f = tunes(song(i, 1));
-    time_len = song(i, 2) * beat_len;
-    nTime_len = Fs * time_len * padding;
-    t = linspace(0, time_len * padding - 1 / Fs, nTime_len)';
-    % tmp_res = envelope(t/time_len) .* sin(2 * pi * f * t);
-    tmp_res = envelope(t/time_len) .* (sin(2 * pi * f * t) + 0.2 * sin(2 * pi * 2*f * t) + 0.3 * sin(2 * pi * 3*f * t));
-    if (last_nPadding == 0)
-        res = [res; tmp_res];
-    else
-        res = [res(1:end-last_nPadding); res(end-last_nPadding)+tmp_res(1:last_nPadding); tmp_res(last_nPadding+1:end)];
-    end
-    last_nPadding = round(nTime_len - Fs * time_len);
+song2 = [...
+    low(1), 1; low(2), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ... % Liang zhi lao hu
+    low(1), 1; low(2), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ...
+    low(1), 1; low(2), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ... % Xiao tu zi guai guai
+    low(1), 1; low(2), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ...
+    low(1), 1; low(2), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ... % Wo he xiao ya zi
+    low(1), 1; low(2), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ...
+    low(1), 1; low(2), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ... % Tong nian shi zui mei
+    low(1), 1; low(2), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ...
+    low(1), 1; low(2), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ... % Xiao luo hao ya
+    low(1), 1; low(2), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ...
+    low(1), 1; low(2), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ... % Wo qu hai ou
+    low(1), 1; low(2), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ...
+    low(1), 1; low(2), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ... % Bu pa feng yu
+    low(1), 1; low(2), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ...
+    low(1), 1; low(2), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ... % Kuai kuai ba ben ling
+    low(1), 1; low(2), 0.5; pause(0), 0.5; low(2), 1; low(3), 0.5; pause(0), 0.5; ...
+    low(2), 1; low(3), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ... % Bao bei xing xing
+    low(2), 1; low(3), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ...
+    low(2), 1; low(3), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ... % Bao bei yue liang
+    low(2), 1; low(3), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ...
+    low(2), 1; low(3), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ... % Cheng zhang shi kuai le
+    low(2), 1; low(3), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ...
+    low(2), 1; low(3), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ... % Yong gan mai kai
+    low(2), 1; low(3), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ...
+    low(2), 1; low(3), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ... % Bao bei ma ma huai li
+    low(2), 1; low(3), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ...
+    low(2), 1; low(3), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ... % Bao bei ba ba shi ni % Ni shi wo men de
+    low(2), 1; low(3), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ...
+    low(2), 1; low(3), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ... % Ni shi wo men de % Yong gan mai kai
+    low(2), 1; low(3), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; pause(0), 0.5; ...
+    low(2), 1; low(3), 0.5; pause(0), 0.5; low(1), 1; low(2), 0.5; low(3), 0.5; ... % Ba ba ma ma de ai
+    low(3), 1; low(4), 0.5; pause(0), 0.5; low(1), 1.5; pause(0), 0.5;
+    pause(0), 6];
+
+res1 = produce(song1, tunes, Fs, beat_len, [1; 0.2; 0.1]);
+res2 = produce(song2, tunes, Fs, beat_len, [1; 0.2; 0.1]);
+
+len1 = length(res1);
+len2 = length(res2);
+
+if len2 > len1
+    res2 = res2(1:len1);
 end
 
-sound(1*res, Fs);
+res = res1 + 0.35 * res2;
+res = res * 0.5;
+sound(res, Fs);

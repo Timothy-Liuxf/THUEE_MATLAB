@@ -1,11 +1,18 @@
-function tunes = get_tunes(base_A)
+function tunes = get_tunes(major)
     tunes = zeros([7 4]);
     ratio = 2^(1/12);
     
-    if base_A <= 0 || base_A > 7
-        error('The parameter base_A is invalid!');
+    switch (major)
+        case 'C'
+            base_A = 6;
+        case 'F'
+            base_A = 3;
+        case { 'A', 'B', 'D', 'E', 'G' }
+            
+        otherwise
+            error('The parameter major is invalid!');
     end
-    
+
     tunes(base_A, 1) = 220;
     tunes(base_A, 2) = 440;
     tunes(base_A, 3) = 880;

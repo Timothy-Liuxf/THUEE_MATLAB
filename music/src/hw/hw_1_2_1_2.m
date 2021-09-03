@@ -7,7 +7,7 @@ ratio = 2^(1/12);
 
 scale_diffs = [-4, -2, 0, 2, 3, 5, 7]';
 real_diffs = ratio.^scale_diffs;
-base_A = 3;
+base_A = 6;
 tunes(base_A, 1) = 220;
 tunes(base_A, 2) = 440;
 tunes(base_A, 3) = 880;

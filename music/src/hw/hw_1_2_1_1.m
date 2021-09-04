@@ -38,4 +38,6 @@ for i = 1 : 1 : len
     res = [res; tmp_res];
 end
 
+plot([0 : length(res) - 1] / Fs, res);
 sound(res, Fs);
+audiowrite('hw_1_2_1_1.wav', res, Fs);

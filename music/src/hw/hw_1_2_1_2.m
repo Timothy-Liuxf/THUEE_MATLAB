@@ -46,4 +46,9 @@ for i = 1 : 1 : len
     last_nPadding = round(nTime_len - Fs * time_len);
 end
 
+figure(1);
+fplot(@(t) envelope(t), [-padding+1, padding * 1.1]);
+figure(2);
+plot([0 : length(res) - 1] / Fs, res);
 sound(res, Fs);
+audiowrite('hw_1_2_1_2.wav', res, Fs);

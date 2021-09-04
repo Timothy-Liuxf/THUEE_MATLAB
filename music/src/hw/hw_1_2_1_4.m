@@ -2,7 +2,7 @@ clear all, close all, clc;
 
 tunes = zeros([7 4]);
 Fs = 8000;
-beat_len = 0.2;
+beat_len = 0.5;
 ratio = 2^(1/12);
 
 scale_diffs = [-4, -2, 0, 2, 3, 5, 7]';
@@ -46,4 +46,9 @@ for i = 1 : 1 : len
     last_nPadding = round(nTime_len - Fs * time_len);
 end
 
+figure(1);
+plot([0 : length(res) - 1] / Fs, res);
+figure(2);
+plot([0 : 200 - 1] / Fs, res(1 : 200));
 sound(res, Fs);
+audiowrite('hw_1_2_1_4.wav', res, Fs);

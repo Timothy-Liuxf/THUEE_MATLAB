@@ -48,12 +48,15 @@ end
 
 % Higher octave
 % sound(res, Fs * 2);
+audiowrite('hw_1_2_1_3_high.wav', res, Fs * 2);
 
 % Octave below
 % sound(res, Fs / 2);
+audiowrite('hw_1_2_1_3_low.wav', res, Fs / 2);
 
 % Raise by half a scale
 
 res_resamp = resample(res, round(Fs ./ 2.^ (1/12)), Fs);
 sound(res_resamp, Fs);
+audiowrite('hw_1_2_1_3.wav', res_resamp, Fs);
 

@@ -1,4 +1,4 @@
-function res = produce(song, tunes, Fs, beat_len, harm)
+function res = produce_with_record(song, tunes, Fs, beat_len, base_freq_record, component_record)
 
 len = size(song);
 len = len(1);
@@ -13,6 +13,9 @@ for i = 1 : 1 : len
     nTime_len = Fs * time_len * padding;
     t = linspace(0, time_len * padding - 1 / Fs, nTime_len)';
     tmp_res = zeros(size(t));
+    
+    [~, idx] = nearest_search(base_freq_record, f);
+    harm = component_record{idx};
     for j = 1 : 1 : length(harm)
         tmp_res = tmp_res + harm(j) * sin(2 * pi * j * f * t);
     end
@@ -26,3 +29,4 @@ for i = 1 : 1 : len
 end
 
 end
+

@@ -3,6 +3,9 @@ clear all, close all, clc;
 
 % Split music
 
+disp('Begin to split music...');
+disp('    Processing music...');
+
 y1 = abs(x);
 y2WndLen = round(Fs) / 10;
 y2 = conv(y1, hanning(y2WndLen));
@@ -27,6 +30,10 @@ plot([0:length(y4)-1] / Fs, y4);
 subplot(6, 1, 6);
 plot([0:length(y5)-1] / Fs, y5);
 
+clear y1 y2 y3 y4 y2WndLen y5WndLen;
+disp('    OK.');
+disp('    Finding split point...');
+
 dy5 = diff(y5);
 is_positive = (dy5(1) > 0);
 primary_find_idx = [];
@@ -41,7 +48,7 @@ end
 
 min_find_len = 3;
 if length(primary_find_idx) < min_find_len * 2
-    error('The music is too short!');
+    error('    Error: The music is too short!');
 end
 
 primary_find_val = y5(primary_find_idx);
@@ -72,11 +79,21 @@ subplot(6, 1, 6);
 hold on
 plot((find_idx-1)/Fs, y5(find_idx), 'o');
 
+clear y5 dy5 primary_find_val primary_sort_res primary_find_idx secondary_find_idx;
+disp('    OK.');
+disp('Spliting music finished!');
+disp('Begin to find basic frequency...');
+disp('    Preparing...');
+
 amp_tolerant_rate_of_base = 0.1;
 
 base_freqs = [];
+base_freq_idxs = [];
 Xs = cell([0 0]);
 T1s = [];
+
+disp('    OK.');
+disp('    Finding...');
 
 % Find basic freqency in each piece of music
 
@@ -164,26 +181,135 @@ for i = 2 : 1 : length(find_idx)
         end
     end
     
-    % disp("Origin: " + (i-1) + " ~ " + i + ": " + (base_freq_idx / T1));
+    % disp("    Origin: " + (i-1) + " ~ " + i + ": " + (base_freq_idx / T1));
     
     base_freqs = [base_freqs; base_freq_idx / T1];
+    base_freq_idxs = [base_freq_idxs; base_freq_idx];
     Xs = [Xs; this_X];
     T1s = [T1s; T1];
     
     % sound(this_x(1:min(Fs, end)), Fs);
     
-    % figure(2);
-    % this_X = [dc_comp; this_X];
-    % plot([0:length(this_X)-1] * (1/T1), this_X);
-    % disp((i - 1) + " ~ " + i + ": ");
-    % pause
+    %{
+    figure(2);
+    this_X = [dc_comp; this_X];
+    plot([0:length(this_X)-1] * (1/T1), this_X);
+    disp((i - 1) + " ~ " + i + ": ");
+    pause
+    %}
+    
+end
+clear this_b this_e this_x this_X this_repeat;
+
+clear over_level candidate_idx candidate_times candidate_times_ret;
+disp('    OK.');
+disp('    Checking legitimacy of frequencies found...');
+
+min_freq = 110;
+max_freq = 1500;
+if sum(base_freqs < min_freq | base_freqs > max_freq) ~= 0
+    error('    Error: A basic frequency is not in the list!');
+end
+std_freqs = generate_std_freqs(min_freq, max_freq);
+modified_base_freqs = nearest_search(std_freqs, base_freqs);
+
+disp('    OK.');
+disp('Finding basic frequency finished!');
+disp('Begin to get components...');
+disp('    Preparing...');
+
+% Sort by freqs
+
+[modified_base_freqs, sort_freq_idx] = sort(modified_base_freqs);
+base_freqs = base_freqs(sort_freq_idx);
+base_freq_idxs = base_freq_idxs(sort_freq_idx);
+Xs = Xs(sort_freq_idx);
+T1s = T1s(sort_freq_idx);
+
+% Get parameters
+
+component_record = cell(length(std_freqs), 2); % Column 1: freq; column 2: components
+component_record(:, 1) = num2cell(std_freqs);
+component_record_itr = 1;
+
+is_float_equal = @(f, g) abs(f - g) / g < 1e-5;
+
+clear sort_freq_idx;
+disp('    OK.');
+disp('    Getting...');
+
+for i = 1 : 1 : length(modified_base_freqs)
+    max_times = floor(length(Xs{i}) / 2 / base_freq_idxs(i));
+    k = [1 : 1 : max_times]';
+    mid_freqs = base_freq_idxs(i) * k;
+    tolerant_idxs = round(base_freq_idxs(i) * amp_tolerant_rate_of_base);
+    left_freqs = mid_freqs - tolerant_idxs;
+    right_freqs = mid_freqs + tolerant_idxs;
+    
+    component_res = zeros([max_times, 1]);
+    for j = 1 : 1 : max_times
+        component_res(j) = max(Xs{i}(left_freqs(j):right_freqs(j)));
+    end
+    component_res  = component_res / component_res(1);
+    
+    while is_float_equal(modified_base_freqs(i), component_record{component_record_itr, 1}) == false
+        component_record_itr = component_record_itr + 1;
+        if component_record_itr > length(std_freqs)
+            error('    Error: unknown error!');
+        end
+    end
+    
+    tmp_org = component_record{component_record_itr, 2};
+    % disp('=============');
+    % disp(tmp_org);
+    if size(tmp_org, 2) == 0
+        component_record{component_record_itr, 2} = component_res;
+    else
+        if size(tmp_org, 1) < length(component_res)
+            tmp_org = [tmp_org; zeros([ length(component_res) - size(tmp_org, 1), size(tmp_org, 2)])];
+        elseif size(tmp_org, 1) > length(component_res)
+            component_res = [component_res; zeros([size(tmp_org, 1) - length(component_res), 1])];
+        end
+        component_record{component_record_itr, 2} = [tmp_org, component_res];
+    end
+    % disp('-----');
+    % disp(component_record{component_record_itr, 2});
 end
 
-% Generate standard frequencies
-std_freqs = [];
-freq_itr = 110;
-ratio = 2^(1/12);
-while freq_itr < 1500
-    std_freqs = [std_freqs; freq_itr];
-    freq_itr = freq_itr * ratio;
+clear Xs;
+disp('    OK.');
+disp('    Cleaning...');
+
+legal_component = logical(zeros([length(std_freqs), 1]));
+for i = 1 : 1 : length(std_freqs)
+    if size(component_record{i, 2}, 2) ~= 0
+        legal_component(i) = true;
+    end
 end
+component_record = component_record(legal_component, :);
+
+%{
+for i = 1 : 1 : 11
+    figure(i + 2);
+    hold on
+    tmp = component_record{i,2};
+    for j = 1 : 1 : size(tmp, 2)
+        plot(component_record{i,2}(:, j));
+    end
+    title(string(component_record{i,1}) + " Hz");
+end
+%}
+
+clear legal_component;
+disp('    OK.');
+disp('    Merging multidata...');
+
+base_freq_record = cell2mat(component_record(:, 1));
+component_record = component_record(:, 2);
+
+for i = 1 : 1 : length(component_record)
+    component_record{i} = mean(component_record{i}, 2);
+end
+
+disp('    OK.');
+disp('Getting components finished!');

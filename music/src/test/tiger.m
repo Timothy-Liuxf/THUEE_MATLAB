@@ -1,20 +1,11 @@
 clear all, close all, clc;
 
-tunes = zeros([7 4]);
 Fs = 8000;
 beat_len = 0.47;
+
 ratio = 2^(1/12);
 
-scale_diffs = [-9, -7, -5, -4, -2, 0, 2]';
-real_diffs = ratio.^scale_diffs;
-base_A = 6;
-tunes(base_A, 1) = 220;
-tunes(base_A, 2) = 440;
-tunes(base_A, 3) = 880;
-
-for i = 1 : 7
-    tunes(i, 1:end) = tunes(base_A, 1:end) .* real_diffs(i);
-end
+tunes = get_tunes('C');
 
 low = @(x) x;
 mid = @(x) x + 7;
@@ -91,8 +82,8 @@ song2 = [...
     low(3), 1; low(4), 0.5; pause(0), 0.5; low(1), 1.5; pause(0), 0.5;
     pause(0), 6];
 
-res1 = produce(song1, tunes, Fs, beat_len);
-res2 = produce(song2, tunes, Fs, beat_len);
+res1 = produce(song1, tunes, Fs, beat_len, [1; 0.2; 0.1]);
+res2 = produce(song2, tunes, Fs, beat_len, [1; 0.2; 0.1]);
 
 len1 = length(res1);
 len2 = length(res2);
@@ -103,4 +94,4 @@ end
 
 res = res1 + 0.35 * res2;
 res = res * 0.5;
-sound(res(440000:end), Fs);
+sound(res, Fs);

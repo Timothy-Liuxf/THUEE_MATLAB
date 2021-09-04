@@ -5,7 +5,7 @@ beat_len = 0.47;
 
 ratio = 2^(1/12);
 
-tunes = get_tunes(6);
+tunes = get_tunes('C');
 
 low = @(x) x;
 mid = @(x) x + 7;

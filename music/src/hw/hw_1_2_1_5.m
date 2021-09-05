@@ -95,3 +95,4 @@ end
 res = res1 + 0.35 * res2;
 res = res * 0.5;
 sound(res, Fs);
+audiowrite('hw_1_2_1_5.wav', res, Fs);

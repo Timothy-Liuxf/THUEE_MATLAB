@@ -1,14 +1,23 @@
 function [base_freq_record, component_record] = get_component(wave_path)
 
     [x, Fs] = audioread(wave_path);
+    
+    x = mean(x, 2);
+    max_Fs = 12000;
+    if Fs > max_Fs
+        x = resample(x, max_Fs, Fs);
+        Fs = max_Fs;
+    end
+    clear max_Fs;
 
     % Split music
 
     disp('Begin to split music...');
     disp('    Processing music...');
+    h_wait_bar = waitbar(0, 'Processing music...');
 
     y1 = abs(x);
-    y2WndLen = round(Fs) / 10;
+    y2WndLen = round(Fs / 10);
     y2 = conv(y1, hanning(y2WndLen));
     y2 = y2(round(y2WndLen/2):end);
     y3 = diff(y2);
@@ -20,20 +29,28 @@ function [base_freq_record, component_record] = get_component(wave_path)
     figure(1);
     subplot(6, 1, 1);
     plot([0:length(x)-1] / Fs, x);
+    title('\itx');
     subplot(6, 1, 2);
     plot([0:length(y1)-1] / Fs, y1);
+    title('{\ity}_1');
     subplot(6, 1, 3);
     plot([0:length(y2)-1] / Fs, y2);
+    title('{\ity}_2');
     subplot(6, 1, 4);
     plot([0:length(y3)-1] / Fs, y3);
+    title('{\ity}_3');
     subplot(6, 1, 5);
     plot([0:length(y4)-1] / Fs, y4);
+    title('{\ity}_4');
     subplot(6, 1, 6);
     plot([0:length(y5)-1] / Fs, y5);
+    title('{\ity}_5');
 
     clear y1 y2 y3 y4 y2WndLen y5WndLen;
+    waitbar(1, h_wait_bar);
     disp('    OK.');
     disp('    Finding split point...');
+    waitbar(0, h_wait_bar, 'Finding split point...');
 
     dy5 = diff(y5);
     is_positive = (dy5(1) > 0);
@@ -46,6 +63,7 @@ function [base_freq_record, component_record] = get_component(wave_path)
             end
         end
     end
+    waitbar(1 / 3, h_wait_bar);
 
     min_find_len = 3;
     if length(primary_find_idx) < min_find_len * 2
@@ -56,6 +74,8 @@ function [base_freq_record, component_record] = get_component(wave_path)
     primary_sort_res = sort(primary_find_val, 'descend');
     level = mean(primary_sort_res(1:min_find_len)) ./ 20;
     secondary_find_idx = primary_find_idx(y5(primary_find_idx) >= level);
+    
+    waitbar(2 / 3, h_wait_bar);
 
     thirdary_find_idx = secondary_find_idx;
     min_n_time_inteval = 0.05 * Fs;
@@ -78,13 +98,19 @@ function [base_freq_record, component_record] = get_component(wave_path)
 
     subplot(6, 1, 6);
     hold on
-    plot((find_idx-1)/Fs, y5(find_idx), 'o');
+    plot((find_idx-1)/Fs, y5(find_idx), 'ro');
+    subplot(6, 1, 1);
+    hold on
+    plot((find_idx-1)/Fs, zeros([length(find_idx), 1]), 'yo');
 
     clear y5 dy5 primary_find_val primary_sort_res primary_find_idx secondary_find_idx;
+    waitbar(1, h_wait_bar);
+    close(h_wait_bar);
     disp('    OK.');
     disp('Spliting music finished!');
     disp('Begin to find basic frequency...');
     disp('    Preparing...');
+    h_wait_bar = waitbar(0, 'Preparing for finding...');
 
     amp_tolerant_rate_of_base = 0.1;
 
@@ -95,6 +121,7 @@ function [base_freq_record, component_record] = get_component(wave_path)
 
     disp('    OK.');
     disp('    Finding...');
+    waitbar(0, h_wait_bar, 'Finding basic frequencies...');
 
     % Find basic freqency in each piece of music
 
@@ -141,29 +168,31 @@ function [base_freq_record, component_record] = get_component(wave_path)
                     end
                     if (candidate_idx == 0 || tmp_ret < candidate_times_ret)
                         should_be_candidate = true;
-                        % if tmp_times ~= 1
-                            % time_of_this_over_times = 0;
-                            % time_of_max_over_times = 0;
-                            % is_times = @(p, q) abs((p/q) - round(p/q)) < 0.1;
-                            % for k = 1 : 1 : 15 % amp_tolerant_rate_of_base
-                                % time_of_this = k * first_idx;
-                                % tolerant_idxs = round(first_idx * amp_tolerant_rate_of_base);
-                                % if is_times(time_of_this, max_idx)
-                                    % if max(this_X(time_of_this-tolerant_idxs : time_of_this+tolerant_idxs)) > amp_level
-                                        % time_of_max_over_times = time_of_max_over_times + 1;
-                                    % end
-                                % else
-                                    % if max(this_X(time_of_this-tolerant_idxs : time_of_this+tolerant_idxs)) > amp_level
-                                        % time_of_this_over_times = time_of_this_over_times + 1;
-                                    % end
-                                % end
-                            % end
+                        %{
+                        if tmp_times ~= 1
+                            time_of_this_over_times = 0;
+                            time_of_max_over_times = 0;
+                            is_times = @(p, q) abs((p/q) - round(p/q)) < 0.1;
+                            for k = 1 : 1 : 15 % amp_tolerant_rate_of_base
+                                time_of_this = k * first_idx;
+                                tolerant_idxs = round(first_idx * amp_tolerant_rate_of_base);
+                                if is_times(time_of_this, max_idx)
+                                    if max(this_X(time_of_this-tolerant_idxs : time_of_this+tolerant_idxs)) > amp_level
+                                        time_of_max_over_times = time_of_max_over_times + 1;
+                                    end
+                                else
+                                    if max(this_X(time_of_this-tolerant_idxs : time_of_this+tolerant_idxs)) > amp_level
+                                        time_of_this_over_times = time_of_this_over_times + 1;
+                                    end
+                                end
+                            end
 
-                            % if time_of_max_over_times >= round(time_of_this_over_times*time_of_this_over_times*0.5-time_of_this_over_times*0.5+3)-0.05;
-                                % hould_be_candidate = false;
-                            % else 
-                            % end
-                        % end
+                            if time_of_max_over_times >= round(time_of_this_over_times*time_of_this_over_times*0.5-time_of_this_over_times*0.5+3)-0.05;
+                                hould_be_candidate = false;
+                            else 
+                            end
+                        end
+                        %}
                         if should_be_candidate == true
                             candidate_idx = first_idx;
                             candidate_times = round(tmp_times);
@@ -198,26 +227,39 @@ function [base_freq_record, component_record] = get_component(wave_path)
         disp((i - 1) + " ~ " + i + ": ");
         pause
         %}
-
+        
+        waitbar(i / length(find_idx), h_wait_bar);
     end
-    clear this_b this_e this_x this_X this_repeat;
 
+    clear this_b this_e this_x this_X this_repeat;
     clear over_level candidate_idx candidate_times candidate_times_ret;
+    waitbar(1, h_wait_bar);
     disp('    OK.');
     disp('    Checking legitimacy of frequencies found...');
+    waitbar(0, h_wait_bar, 'Checking legitimacy...');
 
     min_freq = 110;
     max_freq = 1500;
-    if sum(base_freqs < min_freq | base_freqs > max_freq) ~= 0
-        error('    Error: A basic frequency is not in the list!');
+    freq_too_low = base_freqs < min_freq;
+    freq_too_high = base_freqs > max_freq;
+    legal_freq = ~(freq_too_low | freq_too_high);
+    if sum(freq_too_low | freq_too_high) ~= 0
+        disp('    Warning: A basic frequency is not in the list and will be discarded!');
     end
+    base_freqs = base_freqs(legal_freq);
+    base_freq_idxs = base_freq_idxs(legal_freq);
+    Xs = Xs(legal_freq);
+    T1s = T1s(legal_freq);
     std_freqs = generate_std_freqs(min_freq, max_freq);
     modified_base_freqs = nearest_search(std_freqs, base_freqs);
 
+    clear freq_too_low freq_too_high legal_greq;
+    waitbar(1, h_wait_bar);
     disp('    OK.');
     disp('Finding basic frequency finished!');
     disp('Begin to get components...');
     disp('    Preparing...');
+    waitbar(0, h_wait_bar, 'Preparing for getting components...');
 
     % Sort by freqs
 
@@ -238,6 +280,7 @@ function [base_freq_record, component_record] = get_component(wave_path)
     clear sort_freq_idx;
     disp('    OK.');
     disp('    Getting...');
+    waitbar(0, h_wait_bar, 'Getting components...');
 
     for i = 1 : 1 : length(modified_base_freqs)
         max_times = floor(length(Xs{i}) / 2 / base_freq_idxs(i));
@@ -275,17 +318,21 @@ function [base_freq_record, component_record] = get_component(wave_path)
         end
         % disp('-----');
         % disp(component_record{component_record_itr, 2});
+        waitbar(i / length(modified_base_freqs), h_wait_bar);
     end
 
     clear Xs;
+    waitbar(1, h_wait_bar);
     disp('    OK.');
     disp('    Cleaning...');
+    waitbar(0, h_wait_bar, 'Cleaning...');
 
     legal_component = logical(zeros([length(std_freqs), 1]));
     for i = 1 : 1 : length(std_freqs)
         if size(component_record{i, 2}, 2) ~= 0
             legal_component(i) = true;
         end
+        waitbar(i / length(std_freqs), h_wait_bar);
     end
     component_record = component_record(legal_component, :);
 
@@ -302,17 +349,23 @@ function [base_freq_record, component_record] = get_component(wave_path)
     %}
 
     clear legal_component;
+    waitbar(1, h_wait_bar);
     disp('    OK.');
     disp('    Merging multidata...');
+    waitbar(0, h_wait_bar, 'Merging multidata...');
 
     base_freq_record = cell2mat(component_record(:, 1));
     component_record = component_record(:, 2);
 
     for i = 1 : 1 : length(component_record)
         component_record{i} = mean(component_record{i}, 2);
+        waitbar(i / length(component_record), h_wait_bar);
     end
 
+    waitbar(1, h_wait_bar);
+    waitbar(1, h_wait_bar, 'Finished!');
     disp('    OK.');
     disp('Getting components finished!');
+    close(h_wait_bar);
 
 end

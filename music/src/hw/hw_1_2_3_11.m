@@ -3,7 +3,7 @@ clear all, close all, clc;
 hw_1_2_2_9;
 
 Fs = 8000;
-beat_len = 0.47;
+beat_len = 0.5;
 ratio = 2^(1/12);
 tunes = get_tunes('F');
 low = @(x) x;
@@ -21,3 +21,4 @@ song = [...
 
 res_song = produce_with_record(song, tunes, Fs, beat_len, base_freq_record, component_record);
 sound(res_song, Fs);
+audiowrite('hw_1_2_2_11.wav', res_song, Fs);

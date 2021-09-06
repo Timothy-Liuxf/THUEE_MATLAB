@@ -32,3 +32,4 @@ while i <= length(dc_stream)
     end
     cnt = cnt + 1;
 end
+dc_cum = cumsum([dc_decoding_res(1); -dc_decoding_res(2:end)]);

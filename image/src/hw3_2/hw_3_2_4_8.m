@@ -2,7 +2,6 @@ clear all; close all; clc;
 load('../resource/hall.mat');
 load('../resource/JpegCoeff.mat');
 
-hall_gray = hall_gray(1:24, 1:16);
 img2proc = double(hall_gray) - 128;
 C = blockproc(img2proc, [8, 8], @(blk) zig_zag_8(round(dct2(blk.data) ./ QTAB)));
 [h, w]  =size(C);

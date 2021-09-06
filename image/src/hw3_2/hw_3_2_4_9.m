@@ -17,8 +17,19 @@ category_plus_one = min(ceil(log2(abs(diff_dc) + 1)), 11) + 1;
 
 dc_stream = arrayfun(@(i) ...
     [DCTAB(category_plus_one(i), 2 : DCTAB(category_plus_one(i), 1) + 1), ...
-    (diff_dc(i) >= 0) * (double(dec2bin(abs(diff_dc(i)))) - '0') + (diff_dc(i) < 0) * ~(double(dec2bin(abs(diff_dc(i)))) - '0')]', ...
+    dec2bin_array(diff_dc(i))]', ...
     [1 : length(diff_dc)]', 'UniformOutput', false);
 dc_stream = cell2mat(dc_stream);
 
 % jpegcodes.mat
+
+function y = dec2bin_array(x)
+    if x == 0
+        y = [];
+    else
+        y = double(dec2bin(abs(x))) - '0';
+        if x < 0
+            y = ~y;
+        end
+    end
+end

@@ -1,4 +1,4 @@
-function Out = freqdom_hide2(In, info)
+function Out = freqdom_hide3(In, info)
     info = double(info);
     info(info == 0) = -1;
     Out = zeros(size(In));

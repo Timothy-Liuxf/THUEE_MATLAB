@@ -1,4 +1,4 @@
-function info = freqdom_find2(In)
+function info = freqdom_find3(In)
     info = uint8(zeros([1, size(In, 2)]));
     for i = 1 : 1 : size(In, 2)
         this_seq = flipud(In(:, i));

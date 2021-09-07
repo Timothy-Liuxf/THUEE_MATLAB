@@ -1,4 +1,4 @@
-function y = zig_zag_8(x)
+function y = i_zig_zag_8(x)
     order = [ ...
          1,  2,  6,  7, 15, 16, 28, 29; ...
          3,  5,  8, 14, 17, 27, 30, 43; ...
@@ -9,5 +9,6 @@ function y = zig_zag_8(x)
         22, 35, 38, 48, 51, 57, 60, 62; ...
         36, 37, 49, 50, 58, 59, 63, 64];
     idx(order) = reshape([1 : 64], 8, 8);
-    y = x(idx)';
+    y(idx) = x;
+    y = reshape(y, 8, 8);
 end

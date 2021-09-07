@@ -77,12 +77,12 @@ for i = 1 : 1 : hp
     decoding_C((i - 1) * 64 + 1 : i * 64, :) = decoding_res(:, (i - 1) * wp + 1 : i * wp);
 end
 decoding = blockproc(decoding_C, [64, 1], @(blk) idct2(i_zig_zag_8(blk.data) .* QTAB));
+decoding_img = uint8(decoding + 128);
 
-MSE = sum((decoding + 128 - double(hall_gray)).^2, 'all') / (img_height * img_width);
+MSE = sum((double(decoding_img) - double(hall_gray)).^2, 'all') / (img_height * img_width);
 PSNR = 10 * log10(255 * 255 / MSE);
 disp("PSNR = " + PSNR);
 
-decoding_img = uint8(decoding + 128);
 subplot(1, 2, 1);
 imshow(hall_gray);
 title('Origin');

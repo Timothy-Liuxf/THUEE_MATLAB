@@ -48,14 +48,3 @@ ac_stream = ac_stream';
 img_height = size(hall_gray, 1);
 img_width = size(hall_gray, 2);
 save('jpegcodes.mat', 'dc_stream', 'ac_stream', 'img_height', 'img_width');
-
-function y = dec2bin_array(x)
-    if x == 0
-        y = [];
-    else
-        y = double(dec2bin(abs(x))) - '0';
-        if x < 0
-            y = ~y;
-        end
-    end
-end

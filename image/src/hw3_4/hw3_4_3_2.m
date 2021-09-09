@@ -1,21 +1,21 @@
 clear all; close all; clc;
 img_org = imread('testimg/eesast.bmp');
 
-enable1 = false;
-enable2 = false;
+enable1 = true;
+enable2 = true;
 enable3 = true;
 
 if enable1
-    figure(1);
     strike = [3, 3];
     test_size = [8, 8];
-    Ks = [0.58; 0.68; 0.78]
+    Ks = [0.58; 0.68; 0.78];
 
     L = 3;
     properties = get_all_properties(L);
 
     img = img_org;
     img = check_face(img, properties, L, Ks(1), strike, test_size);
+    figure(1);
     subplot(3, 3, 1);
     imshow(img);
     title("k=" + Ks(1));
@@ -74,19 +74,19 @@ if enable1
 end
 
 if enable2
-    figure(2);
     L = 4;
     properties = get_all_properties(L);
     img = img_org;
     img = check_face(img, properties, L, 0.685, [2, 4], [10, 8]);
+    figure(2);
     imshow(img);
 end
 
 if enable3
-    figure(3);
     L = 4;
     properties = get_all_properties(L);
     img = imread('testimg/gls.bmp');
     img = check_face(img, properties, L, 0.7, [20, 20], [50, 50]);
+    figure(3);
     imshow(img);
 end

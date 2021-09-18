@@ -13,6 +13,8 @@ mid = @(x) x + 7;
 hig = @(x) x + 14;
 vhi = @(x) x + 21;
 pse = @(x) 29;
+srp = @(x) x + 0.5;
+fal = @(x) x - 0.5;
 
 
 song1 = [...

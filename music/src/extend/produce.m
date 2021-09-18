@@ -8,7 +8,7 @@ last_nPadding = 0;
 ratio = 2^(1/12);
 
 for i = 1 : 1 : len
-    f = tunes(song(i, 1));
+    f = get_freq(tunes, song(i, 1));
     time_len = song(i, 2) * beat_len;
     nTime_len = Fs * time_len * padding;
     t = linspace(0, time_len * padding - 1 / Fs, nTime_len)';
